@@ -1,0 +1,26 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "docker-compose up"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "webui"
+source = "webui"
+
+[[services.ports]]
+port = 8501
+protocol = "http"
+
+[[services]]
+name = "api"
+source = "api"
+
+[[services.ports]]
+port = 8080
+protocol = "http"

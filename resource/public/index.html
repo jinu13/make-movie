@@ -1,19 +1,674 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>MoneyPrinterTurbo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 비디오 메이커</title>
+    <style>
+        :root {
+            --primary-color: #3b82f6;
+            --primary-hover: #2563eb;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+        }
+
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab-button {
+            padding: 1rem 2rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            position: relative;
+            bottom: -2px;
+        }
+
+        .tab-button:hover {
+            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Status Display */
+        .status-container {
+            display: none;
+        }
+
+        .status-container.active {
+            display: block;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning-color);
+        }
+
+        .status-processing {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--primary-color);
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+        }
+
+        .status-failed {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--error-color);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: var(--bg-color);
+            border-radius: 8px;
+            overflow: hidden;
+            height: 24px;
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #8b5cf6);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        /* Video Result */
+        .video-result {
+            margin-top: 1.5rem;
+        }
+
+        .video-result video {
+            width: 100%;
+            max-height: 600px;
+            border-radius: 8px;
+            background: black;
+        }
+
+        .download-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--success-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .download-link:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin: 0.5rem 0;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .tab-button {
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-<h1>MoneyPrinterTurbo</h1>
-<a href="https://github.com/harry0703/MoneyPrinterTurbo">https://github.com/harry0703/MoneyPrinterTurbo</a>
-<p>
-    只需提供一个视频 主题 或 关键词 ，就可以全自动生成视频文案、视频素材、视频字幕、视频背景音乐，然后合成一个高清的短视频。
-</p>
+    <div class="container">
+        <header>
+            <h1>🎬 AI 비디오 메이커</h1>
+            <p class="subtitle">주제만 입력하면 자동으로 완성되는 AI 영상 제작 시스템</p>
+        </header>
 
-<p>
-    Simply provide a topic or keyword for a video, and it will automatically generate the video copy, video materials,
-    video subtitles, and video background music before synthesizing a high-definition short video.
-</p>
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-button active" data-tab="horror">Horror Video</button>
+            <button class="tab-button" data-tab="realistic">Realistic Video</button>
+        </div>
+
+        <!-- Horror Video Tab -->
+        <div id="horror-tab" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title">Horror Video 생성</h2>
+                <div class="info-box">
+                    <p><strong>특징:</strong> Flux LoRA + Wan2.2 파이프라인</p>
+                    <p><strong>스타일:</strong> 괴담, 판타지, 스릴러</p>
+                    <p><strong>예상 시간:</strong> 10-17분 (3장면 기준)</p>
+                </div>
+
+                <form id="horror-form">
+                    <div class="form-group">
+                        <label for="horror-topic">주제</label>
+                        <input type="text" id="horror-topic" placeholder="예: 엘리베이터 괴담" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="horror-scenes">장면 수</label>
+                            <input type="number" id="horror-scenes" value="3" min="1" max="10">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="horror-language">언어</label>
+                            <select id="horror-language">
+                                <option value="ko">한국어</option>
+                                <option value="en">English</option>
+                                <option value="ja">日本語</option>
+                                <option value="zh">中文</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn">🎬 영상 생성 시작</button>
+                </form>
+            </div>
+
+            <!-- Horror Status -->
+            <div id="horror-status" class="card status-container">
+                <h3 class="card-title">생성 상태</h3>
+                <div>
+                    <span id="horror-status-badge" class="status-badge status-pending">대기 중</span>
+                </div>
+                <div class="progress-container">
+                    <div id="horror-progress-bar" class="progress-bar" style="width: 0%">0%</div>
+                </div>
+                <div id="horror-result" class="video-result"></div>
+            </div>
+        </div>
+
+        <!-- Realistic Video Tab -->
+        <div id="realistic-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">Realistic Video 생성</h2>
+                <div class="info-box">
+                    <p><strong>특징:</strong> Qwen LoRA + Wan2.2 + 끝→시작 연결</p>
+                    <p><strong>스타일:</strong> 실사, 라이프스타일, 교육</p>
+                    <p><strong>예상 시간:</strong> 10-17분 (3장면 기준)</p>
+                </div>
+
+                <form id="realistic-form">
+                    <div class="form-group">
+                        <label for="realistic-topic">주제</label>
+                        <input type="text" id="realistic-topic" placeholder="예: 커피 한 잔의 여유" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="realistic-scenes">장면 수</label>
+                            <input type="number" id="realistic-scenes" value="3" min="1" max="10">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="realistic-language">언어</label>
+                            <select id="realistic-language">
+                                <option value="ko">한국어</option>
+                                <option value="en">English</option>
+                                <option value="ja">日本語</option>
+                                <option value="zh">中文</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="realistic-resolution">해상도</label>
+                            <select id="realistic-resolution">
+                                <option value="720x1280">720x1280 (세로)</option>
+                                <option value="1280x720">1280x720 (가로)</option>
+                                <option value="1080x1920">1080x1920 (세로 HD)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="realistic-bgm">배경음악</label>
+                            <select id="realistic-bgm">
+                                <option value="true">추가</option>
+                                <option value="false">없음</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn">🎬 영상 생성 시작</button>
+                </form>
+            </div>
+
+            <!-- Realistic Status -->
+            <div id="realistic-status" class="card status-container">
+                <h3 class="card-title">생성 상태</h3>
+                <div>
+                    <span id="realistic-status-badge" class="status-badge status-pending">대기 중</span>
+                </div>
+                <div class="progress-container">
+                    <div id="realistic-progress-bar" class="progress-bar" style="width: 0%">0%</div>
+                </div>
+                <div id="realistic-result" class="video-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = window.location.origin;
+        const POLL_INTERVAL = 3000; // 3 seconds
+
+        let horrorPollTimer = null;
+        let realisticPollTimer = null;
+
+        // Tab Switching
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const targetTab = this.getAttribute('data-tab');
+
+                // Update tab buttons
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+
+                // Update tab content
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(`${targetTab}-tab`).classList.add('active');
+            });
+        });
+
+        // Horror Video Generation
+        document.getElementById('horror-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const topic = document.getElementById('horror-topic').value;
+            const scenes = parseInt(document.getElementById('horror-scenes').value);
+            const language = document.getElementById('horror-language').value;
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '생성 중...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/videos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        video_subject: topic,
+                        video_count: scenes,
+                        voice_name: language === 'ko' ? 'ko-KR-SunHiNeural' :
+                                   language === 'en' ? 'en-US-JennyNeural' :
+                                   language === 'ja' ? 'ja-JP-NanamiNeural' : 'zh-CN-XiaoxiaoNeural'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.code === 200 && result.data.task_id) {
+                    showHorrorStatus();
+                    updateHorrorStatus('pending', 0);
+                    pollHorrorStatus(result.data.task_id);
+                } else {
+                    throw new Error(result.message || '작업 생성 실패');
+                }
+            } catch (error) {
+                alert(`오류 발생: ${error.message}`);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🎬 영상 생성 시작';
+            }
+        });
+
+        // Realistic Video Generation
+        document.getElementById('realistic-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const topic = document.getElementById('realistic-topic').value;
+            const scenes = parseInt(document.getElementById('realistic-scenes').value);
+            const language = document.getElementById('realistic-language').value;
+            const resolution = document.getElementById('realistic-resolution').value;
+            const addBgm = document.getElementById('realistic-bgm').value === 'true';
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '생성 중...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/realistic/videos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        topic,
+                        num_scenes: scenes,
+                        language,
+                        resolution,
+                        add_bgm: addBgm
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.code === 200 && result.data.task_id) {
+                    showRealisticStatus();
+                    updateRealisticStatus('pending', 0);
+                    pollRealisticStatus(result.data.task_id);
+                } else {
+                    throw new Error(result.message || '작업 생성 실패');
+                }
+            } catch (error) {
+                alert(`오류 발생: ${error.message}`);
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🎬 영상 생성 시작';
+            }
+        });
+
+        // Horror Status Display
+        function showHorrorStatus() {
+            document.getElementById('horror-status').classList.add('active');
+            document.getElementById('horror-result').innerHTML = '';
+        }
+
+        function updateHorrorStatus(state, progress, videos = null, error = null) {
+            const badge = document.getElementById('horror-status-badge');
+            const progressBar = document.getElementById('horror-progress-bar');
+            const result = document.getElementById('horror-result');
+
+            badge.className = 'status-badge status-' + state;
+            badge.textContent = state === 'pending' ? '대기 중' :
+                               state === 'processing' ? '생성 중...' :
+                               state === 'completed' ? '완료' :
+                               state === 'failed' ? '실패' : state;
+
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = progress + '%';
+
+            if (state === 'completed' && videos && videos.length > 0) {
+                result.innerHTML = `
+                    <video controls src="${videos[0]}"></video>
+                    <a href="${videos[0]}" download class="download-link">💾 다운로드</a>
+                `;
+                document.getElementById('horror-form').querySelector('button[type="submit"]').disabled = false;
+                document.getElementById('horror-form').querySelector('button[type="submit"]').textContent = '🎬 영상 생성 시작';
+            }
+
+            if (state === 'failed') {
+                result.innerHTML = `<p style="color: var(--error-color);">오류: ${error || '알 수 없는 오류'}</p>`;
+                document.getElementById('horror-form').querySelector('button[type="submit"]').disabled = false;
+                document.getElementById('horror-form').querySelector('button[type="submit"]').textContent = '🎬 영상 생성 시작';
+            }
+        }
+
+        function pollHorrorStatus(taskId) {
+            if (horrorPollTimer) clearInterval(horrorPollTimer);
+
+            horrorPollTimer = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`);
+                    const result = await response.json();
+
+                    if (result.code === 200) {
+                        const { state, progress, videos } = result.data;
+                        updateHorrorStatus(state, progress || 0, videos);
+
+                        if (state === 'completed' || state === 'failed') {
+                            clearInterval(horrorPollTimer);
+                        }
+                    }
+                } catch (error) {
+                    console.error('상태 조회 오류:', error);
+                }
+            }, POLL_INTERVAL);
+        }
+
+        // Realistic Status Display
+        function showRealisticStatus() {
+            document.getElementById('realistic-status').classList.add('active');
+            document.getElementById('realistic-result').innerHTML = '';
+        }
+
+        function updateRealisticStatus(state, progress, videos = null, error = null) {
+            const badge = document.getElementById('realistic-status-badge');
+            const progressBar = document.getElementById('realistic-progress-bar');
+            const result = document.getElementById('realistic-result');
+
+            badge.className = 'status-badge status-' + state;
+            badge.textContent = state === 'pending' ? '대기 중' :
+                               state === 'processing' ? '생성 중...' :
+                               state === 'completed' ? '완료' :
+                               state === 'failed' ? '실패' : state;
+
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = progress + '%';
+
+            if (state === 'completed' && videos && videos.length > 0) {
+                result.innerHTML = `
+                    <video controls src="${videos[0]}"></video>
+                    <a href="${videos[0]}" download class="download-link">💾 다운로드</a>
+                `;
+                document.getElementById('realistic-form').querySelector('button[type="submit"]').disabled = false;
+                document.getElementById('realistic-form').querySelector('button[type="submit"]').textContent = '🎬 영상 생성 시작';
+            }
+
+            if (state === 'failed') {
+                result.innerHTML = `<p style="color: var(--error-color);">오류: ${error || '알 수 없는 오류'}</p>`;
+                document.getElementById('realistic-form').querySelector('button[type="submit"]').disabled = false;
+                document.getElementById('realistic-form').querySelector('button[type="submit"]').textContent = '🎬 영상 생성 시작';
+            }
+        }
+
+        function pollRealisticStatus(taskId) {
+            if (realisticPollTimer) clearInterval(realisticPollTimer);
+
+            realisticPollTimer = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`);
+                    const result = await response.json();
+
+                    if (result.code === 200) {
+                        const { state, progress, videos } = result.data;
+                        updateRealisticStatus(state, progress || 0, videos);
+
+                        if (state === 'completed' || state === 'failed') {
+                            clearInterval(realisticPollTimer);
+                        }
+                    }
+                } catch (error) {
+                    console.error('상태 조회 오류:', error);
+                }
+            }, POLL_INTERVAL);
+        }
+    </script>
 </body>
 </html>

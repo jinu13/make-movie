@@ -1,5 +1,19 @@
-# Use an official Python runtime as a parent image
-FROM python:3.11-slim-bullseye
+# Use NVIDIA CUDA runtime image with cuDNN for GPU acceleration (RTX 5090)
+# cuDNN is required for faster-whisper GPU support
+FROM nvidia/cuda:12.6.0-cudnn-runtime-ubuntu22.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Seoul
+
+# Install Python 3.11 and essential tools
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3.11-dev \
+    python3-pip \
+    && ln -sf /usr/bin/python3.11 /usr/bin/python3 \
+    && ln -sf /usr/bin/python3.11 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container
 WORKDIR /MoneyPrinterTurbo
@@ -23,7 +37,8 @@ RUN sed -i '/<policy domain="path" rights="none" pattern="@\*"/d' /etc/ImageMagi
 COPY requirements.txt ./
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install --no-cache-dir -r requirements.txt
 
 # Now copy the rest of the codebase into the image
 COPY . .
